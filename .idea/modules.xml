@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/Language_Classifier.iml" filepath="$PROJECT_DIR$/.idea/Language_Classifier.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/.idea/Asg2.iml" filepath="$PROJECT_DIR$/.idea/Asg2.iml" />
+>>>>>>> 8b9e3156fafe338bc9bc7f939bd6633b2b821c6f
     </modules>
   </component>
 </project>
