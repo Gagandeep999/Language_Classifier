@@ -1,4 +1,13 @@
-# Jupyter Notebook
+# IPython Notebook
 .ipynb_checkpoints
 
 .idea/
+
+# virtualenv
+venv/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
