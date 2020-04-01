@@ -1,6 +1,6 @@
 class Classifier:
     """
-    This class creates an object of the hyperparameter and based on those paramteres it starts trains the model.
+    This class trains a model based on the paramteres.
     """
     def __init__(self, vocab, ngram, delta, train, test):
         """
