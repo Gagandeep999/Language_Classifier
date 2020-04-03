@@ -13,6 +13,7 @@ class Classifier:
         self.testing_file = test
         self.model = ()  # list to contain 6 models, one for each language
         self.data = {}  # we will have the data stored as a dictionary of language:tweet pair
+        self.language = ['en', 'es', 'eu', 'ca', 'pt', 'gl']
 
     def read_data(self):
         """
@@ -22,6 +23,7 @@ class Classifier:
         2 Distinguish up and low cases and use all characters accepted by the built-in isalpha() method
         :return:
         """
+        exec('print(\'reading data\')')
         return
 
     def create_model(self):
@@ -34,6 +36,7 @@ class Classifier:
         The attribute self.model is a list which will contain 6 intances of the same array, one for each language.
         :return:
         """
+        exec('print(\'creating model\')')
         return
 
     def train_model(self):
@@ -45,6 +48,7 @@ class Classifier:
         To train a bigram model,
         :return:
         """
+        exec('print(\'training model\')')
         return
 
     def save_model(self):
@@ -52,6 +56,7 @@ class Classifier:
         Save the model with parameter description to keep track of the model performance.
         :return:
         """
+        exec('print(\'save the model\')')
         return
 
     def test_model(self):
@@ -60,4 +65,5 @@ class Classifier:
         for the model; output those metrics to a file.
         :return:
         """
+        exec('print(\'testing started\')')
         return
