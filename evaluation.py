@@ -34,45 +34,49 @@ class Evaluation:
         eval_filename = self.data.replace('trace', 'eval')
         file = open(eval_filename, 'w')
         print(self.accuracy(), file=file, end='\n')
-        print(self.precision(), file=file, end='\n')
-        print(self.recall(), file=file, end='\n')
-        print(self.macroF1(), "  ", self.weightedF1(), file=file, end='\n')
+        for language in self.languages:
+            exec('print(self.precision(self.%sTP, self.%sFP), end=\'  \', file=file)' % (language, language))
+        print(file=file)
+        for language in self.languages:
+            exec('print(self.recall(self.%sTP, self.%sFN), end=\'  \', file=file)' % (language, language))
+        print(file=file)
+        for language in self.languages:
+            exec('print(self.f1measure(self.%sTP, self.%sFN, self.%sFP), end=\'  \', file=file)' % (language, language, language))
+        print(file=file)
+        macro = 0
+        for language in self.languages:
+            macro_each = self.macroF1(language)
+            macro += macro_each
+        print(macro / self.languages.__len__(), file=file, end='  ')
+        weight = 0
+        for language in self.languages:
+            weight_each = self.weightedF1(language)
+            weight += weight_each
+        print(weight, file=file)
+        file.flush()
+        file.close()
 
     def accuracy(self):
         return self.correct_count/(self.wrong_count+self.correct_count)
 
-    def precision(self):
-        line = ""
-        for language in self.languages:
-            exec('line += str(self.%sTP / (self.%sTP + self.%sFP)) + \"  \" ' % (language, language, language))
-        return line
+    def precision(self, tp, fp):
+        return tp / (tp+fp)
 
-    def recall(self):
-        line = ""
-        for language in self.languages:
-            exec('line += str(self.%sTP / (self.%sTP + self.%sFN)) + \"  \" ' % (language, language, language))
-        return line
+    def recall(self, tp, fn):
+        return tp / (tp+fn)
 
-    def f1measure(self):
-        line = ""
-        for language in self.languages:
-            exec('precision = self.%sTP / (self.%sTP + self.%sFP) \n\
-    recall = self.%sTP / (self.%sTP + self.%sFN) \n\
-    line += str(2 * (precision * recall) / (precision + recall)) + \"  \" ' % (language, language, language, language, language, language))
-        return line
+    def f1measure(self, tp, fn, fp):
+        precision = self.precision(tp=tp, fp=fp)
+        recall = self.recall(tp=tp, fn=fn)
+        return 2 * ((precision*recall)/(precision+recall))
 
-    def macroF1(self):
-        data = 0
-        for language in self.languages:
-            exec('precision = self.%sTP / (self.%sTP + self.%sFP) \n\
-    recall = self.%sTP / (self.%sTP + self.%sFN) \n\
-    data += 2 * (precision * recall) / (precision + recall) ' % (language, language, language, language, language, language))
-        return data / 6
+    def macroF1(self, L):
+        macro = 0
+        exec('macro = self.f1measure(self.%sTP, self.%sFN, self.%sFP)' % (L, L, L))
+        return macro
 
-    def weightedF1(self):
-        data = 0
-        for language in self.languages:
-            exec('precision = self.%sTP / (self.%sTP + self.%sFP) \n\
-    recall = self.%sTP / (self.%sTP + self.%sFN) \n\
-    data += ((self.%sTP + self.%sFP) / (self.wrong_count + self.right_count)) * (2 * (precision * recall) / (precision + recall))' % (language, language, language, language, language, language, language, language))
-        return data
+    def weightedF1(self, L):
+        weight = 0
+        exec('weight = (self.%sTP+self.%sFP)/(self.correct_count+self.wrong_count)' % (L, L))
+        macro = self.macroF1(L)
+        return macro * weight

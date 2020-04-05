@@ -36,7 +36,7 @@ class Classifier:
         2 Distinguish up and low cases and use all characters accepted by the built-in isalpha() method
         :return:
         """
-        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t', nrows=5000, warn_bad_lines=False)
+        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t', warn_bad_lines=False) #nrows=5000,
         df.columns = ['TweetID', 'UserID', 'Language', "Tweet"]
         _df = df[['Language', 'Tweet']].copy()
         train_dict = defaultdict(list)
@@ -181,18 +181,18 @@ class Classifier:
         """
         for language in self.languages:
             if self.ngram == '1':
-                exec('np.savetxt(\'{L}ModelUnigram.model\', {L}Model, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
+                exec('np.savetxt(\'Models/{L}ModelUnigram.model\', self.{L}Model, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
             elif self.ngram == '2':
-                exec('np.savetxt(\'{L}ModelBigram.model\', {L}Model, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
+                exec('np.savetxt(\'Models/{L}ModelBigram.model\', self.{L}Model, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
             else:
-                exec('outfile = open(\'{L}ModelTrigram.model\', \'w\')\n\
-    print(\'# Shape \', {L}Model.shape, file=outfile)\n\
+                exec('outfile = open(\'Models/{L}ModelTrigram.model\', \'w\')\n\
+    print(\'# Shape \', self.{L}Model.shape, file=outfile)\n\
     outfile.flush()\n\
     print(\'# To load model - new_data = np.loadtxt(filename)\', file=outfile)\n\
     outfile.flush()\n\
     print(\'# Reshape the data - new_data = new_data.reshape((shape))\', file=outfile)\n\
     outfile.flush()\n\
-    for data_slice in {L}Model:\n\
+    for data_slice in self.{L}Model:\n\
         np.savetxt(outfile, data_slice, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
 
     def test_model(self):
@@ -201,7 +201,7 @@ class Classifier:
         for the model; output those metrics to a file.
         :return:
         """
-        filename = 'trace_%s_%s_%s.txt' % (self.vocab, self.ngram, str(self.delta))
+        filename = 'Outputs/trace_%s_%s_%s.txt' % (self.vocab, self.ngram, str(self.delta))
         file = open(filename, 'w')
         print('TWEETID', '  ', 'PREDICTEDVALUE', '  ', 'PROBABILITY', '  ', 'ACTUALVALUE', 'RESULT', file=file, end='\n')
         df = pd.read_csv(self.testing_file, encoding='utf-8', error_bad_lines=False, sep='\t')

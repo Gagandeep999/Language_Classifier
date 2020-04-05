@@ -15,6 +15,7 @@ def main():
     classifier.read_data(False)
     classifier.create_model()
     classifier.train_model()
+    # classifier.save_model()
     trace_file = classifier.test_model()
     evaluation = Evaluation(trace_file)
     evaluation.calculate_performance()
