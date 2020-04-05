@@ -1,4 +1,5 @@
 from classifier import Classifier
+from evaluation import Evaluation
 
 
 def main():
@@ -14,7 +15,11 @@ def main():
     classifier.read_data(False)
     classifier.create_model()
     classifier.train_model()
-    classifier.test_model()
+    # classifier.save_model()
+    trace_file = classifier.test_model()
+    evaluation = Evaluation(trace_file)
+    evaluation.calculate_performance()
+    evaluation.print_to_file()
 
 
 if __name__ == '__main__':
