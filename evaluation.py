@@ -9,6 +9,8 @@ class Evaluation:
         self.data = file
         self.wrong_count = 0
         self.correct_count = 0
+        self.macro = 0
+        self.weight = 0
         self.languages = ['eu', 'ca', 'gl', 'es', 'en', 'pt']
         for language in self.languages:
             exec('self.%sTP = 0' % language)
@@ -17,6 +19,7 @@ class Evaluation:
             exec('self.%sFN = 0' % language)
 
     def calculate_performance(self):
+        print('in eval reading from: ', self.data)
         df = pd.read_csv(self.data, delim_whitespace=True, header=0)
         for index, row in df.iterrows():
             predicted = row['PREDICTEDVALUE']
@@ -32,27 +35,30 @@ class Evaluation:
 
     def print_to_file(self):
         eval_filename = self.data.replace('trace', 'eval')
+        print('in eval writing to: ', eval_filename)
         file = open(eval_filename, 'w')
-        print(self.accuracy(), file=file, end='\n')
+        print('%.4f' % self.accuracy(), file=file, end='\n')
         for language in self.languages:
-            exec('print(self.precision(self.%sTP, self.%sFP), end=\'  \', file=file)' % (language, language))
+            exec('pre = self.precision(self.%sTP, self.%sFP)' % (language, language))
+            exec('print(\'%.4f\' % pre, end=\'  \', file=file)')
         print(file=file)
         for language in self.languages:
-            exec('print(self.recall(self.%sTP, self.%sFN), end=\'  \', file=file)' % (language, language))
+            exec('rec = self.recall(self.%sTP, self.%sFN)' % (language, language))
+            exec('print(\'%.4f\' % rec, end=\'  \', file=file)')
         print(file=file)
         for language in self.languages:
-            exec('print(self.f1measure(self.%sTP, self.%sFN, self.%sFP), end=\'  \', file=file)' % (language, language, language))
+            exec('f1 = self.f1measure(self.%sTP, self.%sFN, self.%sFP)' % (language, language, language))
+            exec('print(\'%.4f\' % f1, end=\'  \', file=file)')
         print(file=file)
-        macro = 0
         for language in self.languages:
-            macro_each = self.macroF1(language)
-            macro += macro_each
-        print(macro / self.languages.__len__(), file=file, end='  ')
-        weight = 0
+            exec('macro = self.macroF1(self.%sTP, self.%sFN, self.%sFP)' % (language, language, language))
+            exec('self.macro += macro')
+        self.macro /= self.languages.__len__()
+        print('%.4f' % self.macro, file=file, end='  ')
         for language in self.languages:
-            weight_each = self.weightedF1(language)
-            weight += weight_each
-        print(weight, file=file)
+            exec('weight = self.weightedF1(self.%sTP, self.%sFN, self.%sFP)' % (language, language, language))
+            exec('self.weight += weight')
+        print('%.4f' % self.weight, file=file)
         file.flush()
         file.close()
 
@@ -68,15 +74,20 @@ class Evaluation:
     def f1measure(self, tp, fn, fp):
         precision = self.precision(tp=tp, fp=fp)
         recall = self.recall(tp=tp, fn=fn)
+        if precision+recall == 0:
+            return 0
         return 2 * ((precision*recall)/(precision+recall))
 
-    def macroF1(self, L):
-        macro = 0
-        exec('macro = self.f1measure(self.%sTP, self.%sFN, self.%sFP)' % (L, L, L))
-        return macro
+    def macroF1(self, tp, fn, fp):
+        precision = self.precision(tp=tp, fp=fp)
+        recall = self.recall(tp=tp, fn=fn)
+        if precision + recall == 0:
+            return 0
+        return 2 * ((precision * recall) / (precision + recall))
 
-    def weightedF1(self, L):
-        weight = 0
-        exec('weight = (self.%sTP+self.%sFP)/(self.correct_count+self.wrong_count)' % (L, L))
-        macro = self.macroF1(L)
-        return macro * weight
+    def weightedF1(self, tp, fn, fp):
+        precision = self.precision(tp=tp, fp=fp)
+        recall = self.recall(tp=tp, fn=fn)
+        if precision + recall == 0:
+            return 0
+        return (tp+fp)/(self.wrong_count+self.correct_count) * ( 2 * ((precision * recall) / (precision + recall)) )

@@ -18,6 +18,7 @@ class Classifier:
         self.vocab = vocab
         self.ngram = ngram
         self.delta = delta
+        self.pattern = re
         self.training_file = train
         self.testing_file = test
         self.data = defaultdict(list)  # we will have the data stored as a dictionary of language:tweet pair
@@ -36,19 +37,19 @@ class Classifier:
         2 Distinguish up and low cases and use all characters accepted by the built-in isalpha() method
         :return:
         """
-        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t', warn_bad_lines=False) #nrows=5000,
+        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t',  warn_bad_lines=False) #nrows=5000,
         df.columns = ['TweetID', 'UserID', 'Language', "Tweet"]
         _df = df[['Language', 'Tweet']].copy()
         train_dict = defaultdict(list)
         if self.vocab == '0':
-            pattern = re.compile('[a-z]')
+            self.pattern = re.compile('[a-z]')
             for index, row in _df.iterrows():
                 sentence = ''
                 tweet = row['Tweet']
                 tweet = tweet.lower()
                 language = row['Language']
                 for letter in tweet:
-                    if pattern.match(letter):
+                    if self.pattern.match(letter):
                         exec('if \'{let}\' not in self.{L}Alphabets.keys():\n\
                                  self.{L}Alphabets[letter] = self.{L}Size\n\
                                  self.{L}Size += 1'.format(let=letter, L=language))
@@ -57,13 +58,13 @@ class Classifier:
                         sentence = sentence + ' '
                 train_dict[row['Language']].append(sentence)
         elif self.vocab == '1':
-            pattern = re.compile('[a-zA-Z]')
+            self.pattern = re.compile('[a-zA-Z]')
             for index, row in _df.iterrows():
                 sentence = ''
                 tweet = row['Tweet']
                 language = row['Language']
                 for letter in tweet:
-                    if pattern.match(letter):
+                    if self.pattern.match(letter):
                         exec('if \'{let}\' not in self.{L}Alphabets.keys():\n\
                                              self.{L}Alphabets[letter] = self.{L}Size\n\
                                              self.{L}Size += 1'.format(let=letter, L=language))
@@ -186,14 +187,14 @@ class Classifier:
                 exec('np.savetxt(\'Models/{L}ModelBigram.model\', self.{L}Model, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
             else:
                 exec('outfile = open(\'Models/{L}ModelTrigram.model\', \'w\')\n\
-    print(\'# Shape \', self.{L}Model.shape, file=outfile)\n\
-    outfile.flush()\n\
-    print(\'# To load model - new_data = np.loadtxt(filename)\', file=outfile)\n\
-    outfile.flush()\n\
-    print(\'# Reshape the data - new_data = new_data.reshape((shape))\', file=outfile)\n\
-    outfile.flush()\n\
-    for data_slice in self.{L}Model:\n\
-        np.savetxt(outfile, data_slice, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
+print(\'# Shape \', self.{L}Model.shape, file=outfile)\n\
+outfile.flush()\n\
+print(\'# To load model - new_data = np.loadtxt(filename)\', file=outfile)\n\
+outfile.flush()\n\
+print(\'# Reshape the data - new_data = new_data.reshape((shape))\', file=outfile)\n\
+outfile.flush()\n\
+for data_slice in self.{L}Model:\n\
+    np.savetxt(outfile, data_slice, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
 
     def test_model(self):
         """
@@ -201,7 +202,12 @@ class Classifier:
         for the model; output those metrics to a file.
         :return:
         """
+
+        # for language in self.languages:
+        #     exec('self.%sModel = self.load_model_np(\'%s\')' % (language, language))
+
         filename = 'Outputs/trace_%s_%s_%s.txt' % (self.vocab, self.ngram, str(self.delta))
+        print('filename for trace is: ', filename)
         file = open(filename, 'w')
         print('TWEETID', '  ', 'PREDICTEDVALUE', '  ', 'PROBABILITY', '  ', 'ACTUALVALUE', 'RESULT', file=file, end='\n')
         df = pd.read_csv(self.testing_file, encoding='utf-8', error_bad_lines=False, sep='\t')
@@ -214,24 +220,29 @@ class Classifier:
             tweetID = row['TweetID']
             langTweet = row['Language']
             tweet = row['Tweet']
+            if self.vocab == '0':
+                tweet = tweet.lower()
             if self.ngram == '1':
-                for i in range(len(tweet) - 2):
+                for i in range(len(tweet)):
                     first = tweet[i]
                     for language in self.languages:
                         # add condition when the "first" does not match the pattern
-                        exec('if (first not in self.{lang}Alphabets.keys()):\n\
+                        exec('if not self.pattern.match(first):\n\
+    prob = 0\n\
+elif (first not in self.{lang}Alphabets.keys()):\n\
     prob = self.{lang}Model[-1]\n\
 else:\n\
     index = self.{lang}Alphabets[first]\n\
     prob = self.{lang}Model[index]\n\
-    {lang}Prob = prob + {lang}Prob\n'.format(lang=language))
+{lang}Prob = prob + {lang}Prob\n'.format(lang=language))
             elif self.ngram == '2':
-                # add condition when the "first" & "second" does not match the pattern
-                for i in range(len(tweet) - 2):
+                for i in range(len(tweet) - 1):
                     first = tweet[i]
                     second = tweet[i + 1]
                     for language in self.languages:
-                        exec('if ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys())):\n\
+                        exec('if ( (not self.pattern.match(first)) or (not self.pattern.match(second)) ):\n\
+    prob = 0\n\
+elif ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys())):\n\
     prob = self.{lang}Model[-1][-1]\n\
 elif (second not in self.{lang}Alphabets.keys()):\n\
     index = self.{lang}Alphabets[first]\n\
@@ -250,8 +261,9 @@ else:\n\
                     second = tweet[i + 1]
                     third = tweet[i + 2]
                     for language in self.languages:
-                        # add condition when the "first" & "second" & "third" does not match the pattern
-                        exec('if ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) and (third not in self.{lang}Alphabets.keys())):\n\
+                        exec('if ( (not first.isalpha()) or (not second.isalpha()) or (not third.isalpha()) ):\n\
+    prob = 0 \n\
+elif ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) and (third not in self.{lang}Alphabets.keys())):\n\
     prob = self.{lang}Model[-1][-1][-1]\n\
 elif ( (first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) ):\n\
     index = self.{lang}Alphabets[third]\n\
@@ -279,6 +291,8 @@ else:\n\
     secondIndex = self.{lang}Alphabets[second]\n\
     thirdIndex = self.{lang}Alphabets[third]\n\
     prob = self.{lang}Model[firstIndex][secondIndex][thirdIndex]\n\
+    prob = self.{lang}Model[firstIndex][secondIndex][thirdIndex]\n\
+    prob = self.{lang}Model[firstIndex][secondIndex][thirdIndex]\n\
 {lang}Prob = prob + {lang}Prob\n'.format(lang=language))
 
             for langu in self.languages:
@@ -286,4 +300,10 @@ else:\n\
             result = max(probability, key=probability.get)
             print(tweetID, '  ', result, '  ', '%.2E' % Decimal(probability[result]), '  ', langTweet, '  ',
                   'correct' if (langTweet == result) else 'wrong', file=file, end='\n')
+        file.flush()
+        file.close()
         return filename
+
+    def load_model_np(self, L):
+        model = np.load('Models/%sModelTrigram.model' % L)
+        return model
