@@ -221,30 +221,34 @@ class Classifier:
                     first = tweet[i]
                     for language in self.languages:
                         # add condition when the "first" does not match the pattern
-                        exec('if (first not in self.{lang}Alphabets.keys()):\n\
+                        exec('if not self.pattern.match(first):\n\
+    prob = 0\n\
+elif (first not in self.{lang}Alphabets.keys()):\n\
     prob = self.{lang}Model[-1]\n\
 else:\n\
     index = self.{lang}Alphabets[first]\n\
     prob = self.{lang}Model[index]\n\
-    {lang}Prob = prob + {lang}Prob\n'.format(lang=language))
+{lang}Prob = prob + {lang}Prob\n'.format(lang=language))
             elif self.ngram == '2':
                 # add condition when the "first" & "second" does not match the pattern
                 for i in range(len(tweet) - 2):
                     first = tweet[i]
                     second = tweet[i + 1]
                     for language in self.languages:
-                        exec('if ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys())):\n\
-    prob = self.{lang}Model[-1][-1]\n\
-elif (second not in self.{lang}Alphabets.keys()):\n\
-    index = self.{lang}Alphabets[first]\n\
-    prob = self.{lang}Model[index][-1]\n\
-elif (first not in self.{lang}Alphabets.keys()):\n\
-    index = self.{lang}Alphabets[second]\n\
-    prob = self.{lang}Model[-1][index]\n\
+                        exec('if ( (not self.pattern.match(first)) and (not self.pattern.match(second)) ):\n\
+    prob = 0\n\
+elif ((first not in {lang}Alphabets.keys()) and (second not in {lang}Alphabets.keys())):\n\
+    prob = {lang}Model[-1][-1]\n\
+elif (second not in {lang}Alphabets.keys()):\n\
+    index = {lang}Alphabets[first]\n\
+    prob = {lang}Model[index][-1]\n\
+elif (first not in {lang}Alphabets.keys()):\n\
+    index = {lang}Alphabets[second]\n\
+    prob = {lang}Model[-1][index]\n\
 else:\n\
-    firstIndex = self.{lang}Alphabets[first]\n\
-    secondIndex = self.{lang}Alphabets[second]\n\
-    prob = self.{lang}Model[firstIndex][secondIndex]\n\
+    firstIndex = {lang}Alphabets[first]\n\
+    secondIndex = {lang}Alphabets[second]\n\
+    prob = {lang}Model[firstIndex][secondIndex]\n\
 {lang}Prob = prob + {lang}Prob\n'.format(lang=language))
             else:
                 for i in range(len(tweet) - 2):
@@ -253,34 +257,36 @@ else:\n\
                     third = tweet[i + 2]
                     for language in self.languages:
                         # add condition when the "first" & "second" & "third" does not match the pattern
-                        exec('if ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) and (third not in self.{lang}Alphabets.keys())):\n\
-    prob = self.{lang}Model[-1][-1][-1]\n\
-elif ( (first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) ):\n\
-    index = self.{lang}Alphabets[third]\n\
-    prob = self.{lang}Model[-1][-1][index]\n\
-elif ( (first not in self.{lang}Alphabets.keys()) and (third not in self.{lang}Alphabets.keys()) ):\n\
-    index = self.{lang}Alphabets[second]\n\
-    prob = self.{lang}Model[-1][index][-1]\n\
-elif ( (second not in self.{lang}Alphabets.keys()) and (third not in self.{lang}Alphabets.keys()) ):\n\
-    index = self.{lang}Alphabets[first]\n\
-    prob = self.{lang}Model[index][-1][-1]\n\
-elif first not in self.{lang}Alphabets.keys():\n\
-    secondIndex = self.{lang}Alphabets[second]\n\
-    thirdIndex = self.{lang}Alphabets[third]\n\
-    prob = self.{lang}Model[-1][secondIndex][thirdIndex]\n\
-elif second not in self.{lang}Alphabets.keys():\n\
-    firstIndex = self.{lang}Alphabets[first]\n\
-    thirdIndex = self.{lang}Alphabets[third]\n\
-    prob = self.{lang}Model[firstIndex][-1][thirdIndex]\n\
-elif third not in self.{lang}Alphabets.keys():\n\
-    firstIndex = self.{lang}Alphabets[first]\n\
-    secondIndex = self.{lang}Alphabets[second]\n\
-    prob = self.{lang}Model[firstIndex][secondIndex][-1]\n\
+                        exec('if ( (not first.isalpha()) and (not second.isalpha()) and (not third.isalpha()) ):\n\
+    prob = 0 \n\
+elif ((first not in {lang}Alphabets.keys()) and (second not in {lang}Alphabets.keys()) and (third not in {lang}Alphabets.keys())):\n\
+    prob = {lang}Model[-1][-1][-1]\n\
+elif ( (first not in {lang}Alphabets.keys()) and (second not in {lang}Alphabets.keys()) ):\n\
+    index = {lang}Alphabets[third]\n\
+    prob = {lang}Model[-1][-1][index]\n\
+elif ( (first not in {lang}Alphabets.keys()) and (third not in {lang}Alphabets.keys()) ):\n\
+    index = {lang}Alphabets[second]\n\
+    prob = {lang}Model[-1][index][-1]\n\
+elif ( (second not in {lang}Alphabets.keys()) and (third not in {lang}Alphabets.keys()) ):\n\
+    index = {lang}Alphabets[first]\n\
+    prob = {lang}Model[index][-1][-1]\n\
+elif first not in {lang}Alphabets.keys():\n\
+    secondIndex = {lang}Alphabets[second]\n\
+    thirdIndex = {lang}Alphabets[third]\n\
+    prob = {lang}Model[-1][secondIndex][thirdIndex]\n\
+elif second not in {lang}Alphabets.keys():\n\
+    firstIndex = {lang}Alphabets[first]\n\
+    thirdIndex = {lang}Alphabets[third]\n\
+    prob = {lang}Model[firstIndex][-1][thirdIndex]\n\
+elif third not in {lang}Alphabets.keys():\n\
+    firstIndex = {lang}Alphabets[first]\n\
+    secondIndex = {lang}Alphabets[second]\n\
+    prob = {lang}Model[firstIndex][secondIndex][-1]\n\
 else:\n\
-    firstIndex = self.{lang}Alphabets[first]\n\
-    secondIndex = self.{lang}Alphabets[second]\n\
-    thirdIndex = self.{lang}Alphabets[third]\n\
-    prob = self.{lang}Model[firstIndex][secondIndex][thirdIndex]\n\
+    firstIndex = {lang}Alphabets[first]\n\
+    secondIndex = {lang}Alphabets[second]\n\
+    thirdIndex = {lang}Alphabets[third]\n\
+    prob = {lang}Model[firstIndex][secondIndex][thirdIndex]\n\
 {lang}Prob = prob + {lang}Prob\n'.format(lang=language))
 
             for langu in self.languages:
