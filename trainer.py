@@ -16,14 +16,24 @@ def main():
     # testing_file = input('Enter test file: ')
 
     classifier = Classifier(vocab, ngram, float(delta), training_file, testing_file)
+    start = time.time()
     classifier.read_data(False)
+    print('Time taken to read: ', time.time() - start)
+    start = time.time()
     classifier.create_model()
+    print('Time taken to create model: ', time.time() - start)
+    start = time.time()
     classifier.train_model()
+    print('Time taken to train model: ', time.time() - start)
     # classifier.save_model()
+    start = time.time()
     trace_file = classifier.test_model()
+    print('Time taken to test model: ', time.time() - start)
     evaluation = Evaluation(trace_file)
+    start = time.time()
     evaluation.calculate_performance()
     evaluation.print_to_file()
+    print('Time taken to evaluate model: ', time.time() - start)
 
 
 if __name__ == '__main__':
