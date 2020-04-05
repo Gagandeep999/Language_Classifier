@@ -21,7 +21,7 @@ class Classifier:
         self.training_file = train
         self.testing_file = test
         self.data = defaultdict(list)  # we will have the data stored as a dictionary of language:tweet pair
-        self.languages = ['eu', 'ca', 'gl', 'es', 'es', 'pt']
+        self.languages = ['eu', 'ca', 'gl', 'es', 'en', 'pt']
         self.defaultSmoothing = 10e-10
         for language in self.languages:
             exec("self.%sAlphabets={}" % language)
@@ -204,7 +204,7 @@ class Classifier:
         filename = 'trace_%s_%s_%s.txt' % (self.vocab, self.ngram, str(self.delta))
         file = open(filename, 'w')
         print('TWEETID', '  ', 'PREDICTEDVALUE', '  ', 'PROBABILITY', '  ', 'ACTUALVALUE', 'RESULT', file=file, end='\n')
-        df = pd.read_csv(self.testing_file, encoding='utf-8', error_bad_lines=False, sep='\t', nrows=100)
+        df = pd.read_csv(self.testing_file, encoding='utf-8', error_bad_lines=False, sep='\t')
         df.columns = ['TweetID', 'UserID', 'Language', "Tweet"]
         _df = df[['TweetID', 'Language', 'Tweet']].copy()
         probability = {}
