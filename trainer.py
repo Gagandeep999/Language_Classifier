@@ -3,9 +3,12 @@ from evaluation import Evaluation
 
 
 def main():
-    vocab = input('Enter choice for vocabulary: ')
-    ngram = input('Enter choice for NGram: ')
-    delta = input('Enter smoothing delta value between 0 and 1: ')
+    # vocab = input('Enter choice for vocabulary: ')
+    vocab = '0'
+    # ngram = input('Enter choice for NGram: ')
+    ngram = '1'
+    # delta = input('Enter smoothing delta value between 0 and 1: ')
+    delta = '0.5'
     training_file = 'OriginalDataSet/training-tweets.txt'
     # training_file = input('Enter training file: ')
     testing_file = 'OriginalDataSet/test-tweets-given.txt'

@@ -18,6 +18,7 @@ class Classifier:
         self.vocab = vocab
         self.ngram = ngram
         self.delta = delta
+        self.pattern = re
         self.training_file = train
         self.testing_file = test
         self.data = defaultdict(list)  # we will have the data stored as a dictionary of language:tweet pair
@@ -36,19 +37,19 @@ class Classifier:
         2 Distinguish up and low cases and use all characters accepted by the built-in isalpha() method
         :return:
         """
-        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t', warn_bad_lines=False) #nrows=5000,
+        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t', warn_bad_lines=False) # nrows=5000,
         df.columns = ['TweetID', 'UserID', 'Language', "Tweet"]
         _df = df[['Language', 'Tweet']].copy()
         train_dict = defaultdict(list)
         if self.vocab == '0':
-            pattern = re.compile('[a-z]')
+            self.pattern = re.compile('[a-z]')
             for index, row in _df.iterrows():
                 sentence = ''
                 tweet = row['Tweet']
                 tweet = tweet.lower()
                 language = row['Language']
                 for letter in tweet:
-                    if pattern.match(letter):
+                    if self.pattern.match(letter):
                         exec('if \'{let}\' not in self.{L}Alphabets.keys():\n\
                                  self.{L}Alphabets[letter] = self.{L}Size\n\
                                  self.{L}Size += 1'.format(let=letter, L=language))
@@ -57,13 +58,13 @@ class Classifier:
                         sentence = sentence + ' '
                 train_dict[row['Language']].append(sentence)
         elif self.vocab == '1':
-            pattern = re.compile('[a-zA-Z]')
+            self.pattern = re.compile('[a-zA-Z]')
             for index, row in _df.iterrows():
                 sentence = ''
                 tweet = row['Tweet']
                 language = row['Language']
                 for letter in tweet:
-                    if pattern.match(letter):
+                    if self.pattern.match(letter):
                         exec('if \'{let}\' not in self.{L}Alphabets.keys():\n\
                                              self.{L}Alphabets[letter] = self.{L}Size\n\
                                              self.{L}Size += 1'.format(let=letter, L=language))
@@ -202,6 +203,7 @@ class Classifier:
         :return:
         """
         filename = 'Outputs/trace_%s_%s_%s.txt' % (self.vocab, self.ngram, str(self.delta))
+        print('filename for trace is: ', filename)
         file = open(filename, 'w')
         print('TWEETID', '  ', 'PREDICTEDVALUE', '  ', 'PROBABILITY', '  ', 'ACTUALVALUE', 'RESULT', file=file, end='\n')
         df = pd.read_csv(self.testing_file, encoding='utf-8', error_bad_lines=False, sep='\t')
