@@ -21,6 +21,7 @@ class Classifier:
         self.pattern = re
         self.training_file = train
         self.testing_file = test
+        self.check = True
         self.data = defaultdict(list)  # we will have the data stored as a dictionary of language:tweet pair
         self.languages = ['eu', 'ca', 'gl', 'es', 'en', 'pt']
         self.defaultSmoothing = 10e-10
@@ -231,15 +232,19 @@ for data_slice in self.{L}Model:\n\
                         exec('if self.vocab==\'2\':\n\
     if not first.isalpha():\n\
         prob = 0\n\
+        self.check = False\n\
 else:\n\
     if not self.pattern.match(first):\n\
         prob = 0\n\
-if (first not in self.{lang}Alphabets.keys()):\n\
-    prob = self.{lang}Model[-1]\n\
-else:\n\
-    index = self.{lang}Alphabets[first]\n\
-    prob = self.{lang}Model[index]\n\
-{lang}Prob = prob + {lang}Prob\n'.format(lang=language))
+        self.check=False\n\
+if(self.check):\n\
+    if (first not in self.{lang}Alphabets.keys()):\n\
+        prob = self.{lang}Model[-1]\n\
+    else:\n\
+        index = self.{lang}Alphabets[first]\n\
+        prob = self.{lang}Model[index]\n\
+{lang}Prob = prob + {lang}Prob\n\
+self.check = True\n'.format(lang=language))
             elif self.ngram == '2':
 
                 for i in range(len(tweet) - 1):
