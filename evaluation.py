@@ -66,9 +66,13 @@ class Evaluation:
         return self.correct_count/(self.wrong_count+self.correct_count)
 
     def precision(self, tp, fp):
+        if tp+fp == 0:
+            return 0
         return tp / (tp+fp)
 
     def recall(self, tp, fn):
+        if tp+fn == 0:
+            return 0
         return tp / (tp+fn)
 
     def f1measure(self, tp, fn, fp):
