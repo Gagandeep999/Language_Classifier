@@ -37,7 +37,7 @@ class Classifier:
         2 Distinguish up and low cases and use all characters accepted by the built-in isalpha() method
         :return:
         """
-        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t',  warn_bad_lines=False) #nrows=5000,
+        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t', warn_bad_lines=False) #nrows=5000,
         df.columns = ['TweetID', 'UserID', 'Language', "Tweet"]
         _df = df[['Language', 'Tweet']].copy()
         train_dict = defaultdict(list)
@@ -210,7 +210,7 @@ for data_slice in self.{L}Model:\n\
         print('filename for trace is: ', filename)
         file = open(filename, 'w')
         print('TWEETID', '  ', 'PREDICTEDVALUE', '  ', 'PROBABILITY', '  ', 'ACTUALVALUE', 'RESULT', file=file, end='\n')
-        df = pd.read_csv(self.testing_file, encoding='utf-8', error_bad_lines=False, sep='\t')
+        df = pd.read_csv(self.testing_file, encoding='utf-8', error_bad_lines=False, sep='\t')#, nrows=500)
         df.columns = ['TweetID', 'UserID', 'Language', "Tweet"]
         _df = df[['TweetID', 'Language', 'Tweet']].copy()
         probability = {}
@@ -222,27 +222,37 @@ for data_slice in self.{L}Model:\n\
             tweet = row['Tweet']
             if self.vocab == '0':
                 tweet = tweet.lower()
+
             if self.ngram == '1':
                 for i in range(len(tweet)):
                     first = tweet[i]
                     for language in self.languages:
                         # add condition when the "first" does not match the pattern
-                        exec('if not self.pattern.match(first):\n\
-    prob = 0\n\
-elif (first not in self.{lang}Alphabets.keys()):\n\
+                        exec('if self.vocab==\'2\':\n\
+    if not first.isalpha():\n\
+        prob = 0\n\
+else:\n\
+    if not self.pattern.match(first):\n\
+        prob = 0\n\
+if (first not in self.{lang}Alphabets.keys()):\n\
     prob = self.{lang}Model[-1]\n\
 else:\n\
     index = self.{lang}Alphabets[first]\n\
     prob = self.{lang}Model[index]\n\
 {lang}Prob = prob + {lang}Prob\n'.format(lang=language))
             elif self.ngram == '2':
+
                 for i in range(len(tweet) - 1):
                     first = tweet[i]
                     second = tweet[i + 1]
                     for language in self.languages:
-                        exec('if ( (not self.pattern.match(first)) or (not self.pattern.match(second)) ):\n\
-    prob = 0\n\
-elif ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys())):\n\
+                        exec('if self.vocab==\'2\':\n\
+    if (not first.isalpha()) and (not second.isalpha()):\n\
+        prob = 0\n\
+else:\n\
+    if ( (not self.pattern.match(first)) or (not self.pattern.match(second)) ):\n\
+        prob = 0\n\
+if ( (first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) ):\n\
     prob = self.{lang}Model[-1][-1]\n\
 elif (second not in self.{lang}Alphabets.keys()):\n\
     index = self.{lang}Alphabets[first]\n\
@@ -261,9 +271,13 @@ else:\n\
                     second = tweet[i + 1]
                     third = tweet[i + 2]
                     for language in self.languages:
-                        exec('if ( (not first.isalpha()) or (not second.isalpha()) or (not third.isalpha()) ):\n\
-    prob = 0 \n\
-elif ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) and (third not in self.{lang}Alphabets.keys())):\n\
+                        exec('if self.vocab==\'2\':\n\
+    if (not first.isalpha()) or (not second.isalpha() or (not third.isalpha())):\n\
+        prob = 0\n\
+else:\n\
+    if ( (not self.pattern.match(first)) or (not self.pattern.match(second)) or (not self.pattern.match(third)) ):\n\
+        prob = 0\n\
+if ((first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) and (third not in self.{lang}Alphabets.keys())):\n\
     prob = self.{lang}Model[-1][-1][-1]\n\
 elif ( (first not in self.{lang}Alphabets.keys()) and (second not in self.{lang}Alphabets.keys()) ):\n\
     index = self.{lang}Alphabets[third]\n\
