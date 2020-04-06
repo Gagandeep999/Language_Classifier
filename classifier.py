@@ -7,10 +7,40 @@ from decimal import Decimal
 from collections import defaultdict
 
 
+# def hasNumbers(s):
+#     for character in s:
+#         if character.isdigit():
+#             return True
+#     return False
+
+
+# def cleanTweets(tweets):
+#     tweetList = []
+#     languageList = []
+#     tweets_ = pd.DataFrame(columns = tweets.columns.values)
+#     for index, row in tweets.iterrows():
+#         tweet = row["Tweet"]
+#         language = row["Language"]
+#         sentence = ""
+#         for word in tweet.split():
+#             if ("#" in word) or ("@" in word) or ("//" in word) or (hasNumbers(word)):
+#                 sentence = sentence
+#             else:
+#                 sentence += " "
+#                 sentence += word
+#         print(sentence)
+#         tweetList.append(sentence)
+#         languageList.append(language)
+#         tweets_.append(language, sentence)
+#     tweets_ = tweet_.assign('Tweet'= tweetList,'Language' = languageList)
+#     return tweets_
+
+
 class Classifier:
     """
     This class trains a model based on the paramteres and prints the result of the test to an output file.
     """
+
     def __init__(self, vocab, ngram, delta, train, test):
         """
         constructor for the trainer class
@@ -37,9 +67,13 @@ class Classifier:
         2 Distinguish up and low cases and use all characters accepted by the built-in isalpha() method
         :return:
         """
-        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t',  warn_bad_lines=False) #nrows=5000,
+        df = pd.read_csv(self.training_file, encoding='utf-8', error_bad_lines=False, sep='\t', warn_bad_lines=False)  # nrows=5000,
         df.columns = ['TweetID', 'UserID', 'Language', "Tweet"]
         _df = df[['Language', 'Tweet']].copy()
+        # _df = cleanTweets(_df)
+        # print(type (_df))
+        # here need to clean the tweets
+        # print(_df)
         train_dict = defaultdict(list)
         if self.vocab == '0':
             self.pattern = re.compile('[a-z]')
@@ -72,7 +106,7 @@ class Classifier:
                     else:
                         sentence = sentence + ' '
                 train_dict[row['Language']].append(sentence)
-        elif self.vocab == '2':
+        elif self.vocab == '2' or self.vocab == "3":
             for index, row in _df.iterrows():
                 sentence = ''
                 tweet = row['Tweet']
@@ -134,7 +168,7 @@ class Classifier:
             for tweet in tweets:
                 if self.ngram == '1':
                     for i in range(len(tweet) - 1):
-                        first = tweet[i] # get the first character
+                        first = tweet[i]  # get the first character
                         if not first.isspace():
                             exec('index = self.%sAlphabets[first]' % language)  # get index of the character from the language dictionary
                             exec('self.%sModel[index] += 1' % language)  # increment that index in the language model
