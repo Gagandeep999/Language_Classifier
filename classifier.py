@@ -247,7 +247,7 @@ else:\n\
                     second = tweet[i + 1]
                     for language in self.languages:
                         exec('if self.vocab==\'2\':\n\
-    if (not first.isalpha()) and (not second.isalpha()):\n\
+    if (not first.isalpha()) or (not second.isalpha()):\n\
         prob = 0\n\
 else:\n\
     if ( (not self.pattern.match(first)) or (not self.pattern.match(second)) ):\n\
