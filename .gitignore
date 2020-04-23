@@ -11,3 +11,9 @@ ENV/
 __pycache__/
 *.py[cod]
 *$py.class
+
+*.zip
+
+Models/
+Outputs/
+Submission/

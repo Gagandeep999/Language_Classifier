@@ -25,9 +25,7 @@ class Classifier:
         self.data = defaultdict(list)  # we will have the data stored as a dictionary of language:tweet pair
         self.languages = ['eu', 'ca', 'gl', 'es', 'en', 'pt']
         self.defaultSmoothing = 10e-10
-        self.totalCount = 0
         for language in self.languages:
-            exec("self.%sCount=0" % language)
             exec("self.%sAlphabets={}" % language)
             exec('self.%sSize = 0' % language)
             exec('self.%sModel = np.array([])' % language)
@@ -51,7 +49,6 @@ class Classifier:
                 tweet = row['Tweet']
                 tweet = tweet.lower()
                 language = row['Language']
-                exec('self.%sCount += 1' % language)
                 for letter in tweet:
                     if self.pattern.match(letter):
                         exec('if \'{let}\' not in self.{L}Alphabets.keys():\n\
@@ -67,7 +64,6 @@ class Classifier:
                 sentence = ''
                 tweet = row['Tweet']
                 language = row['Language']
-                exec('self.%sCount += 1' % language)
                 for letter in tweet:
                     if self.pattern.match(letter):
                         exec('if \'{let}\' not in self.{L}Alphabets.keys():\n\
@@ -82,7 +78,6 @@ class Classifier:
                 sentence = ''
                 tweet = row['Tweet']
                 language = row['Language']
-                exec('self.%sCount += 1' % language)
                 for letter in tweet:
                     if letter.isalpha():
                         exec('if \'{let}\' not in self.{L}Alphabets.keys():\n\
@@ -100,14 +95,6 @@ class Classifier:
             return train_dict
         else:
             self.data = train_dict
-
-    def print_dictionary(self):
-        filename = 'Models/dict_%s.txt' % self.vocab
-        file = open(filename, 'w')
-        for language in self.languages:
-            exec('print(\'dict for language %s is :\', file=file)' % language)
-            exec('for key, value in self.{L}Alphabets.items():\n\
-    print(key, \' : \', value, file=file)'.format(L=language))
 
     def create_model(self):
         """
@@ -196,9 +183,9 @@ class Classifier:
         """
         for language in self.languages:
             if self.ngram == '1':
-                exec('np.savetxt(\'Models/{L}ModelUnigram.model\', self.{L}Model, delimiter=\',\', fmt=\'%.10f\')'.format(L=language))
+                exec('np.savetxt(\'Models/{L}ModelUnigram.model\', self.{L}Model, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
             elif self.ngram == '2':
-                exec('np.savetxt(\'Models/{L}ModelBigram.model\', self.{L}Model, delimiter=\',\', fmt=\'%.10f\')'.format(L=language))
+                exec('np.savetxt(\'Models/{L}ModelBigram.model\', self.{L}Model, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
             else:
                 exec('outfile = open(\'Models/{L}ModelTrigram.model\', \'w\')\n\
 print(\'# Shape \', self.{L}Model.shape, file=outfile)\n\
@@ -208,7 +195,7 @@ outfile.flush()\n\
 print(\'# Reshape the data - new_data = new_data.reshape((shape))\', file=outfile)\n\
 outfile.flush()\n\
 for data_slice in self.{L}Model:\n\
-    np.savetxt(outfile, data_slice, delimiter=\',\', fmt=\'%.10f\')'.format(L=language))
+    np.savetxt(outfile, data_slice, delimiter=\',\', fmt=\'%1.2e\')'.format(L=language))
 
     def test_model(self):
         """
@@ -228,12 +215,9 @@ for data_slice in self.{L}Model:\n\
         df.columns = ['TweetID', 'UserID', 'Language', "Tweet"]
         _df = df[['TweetID', 'Language', 'Tweet']].copy()
         probability = {}
-
-        for language in self.languages:
-            exec("self.totalCount += self.%sCount" % language)
         for index, row in _df.iterrows():
             for language in self.languages:
-                exec("%sProb=math.log10(self.%sCount/self.totalCount)" % (language, language))
+                exec("%sProb=math.log10(1/6)" % language)
             tweetID = row['TweetID']
             langTweet = row['Language']
             tweet = row['Tweet']
@@ -350,10 +334,3 @@ self.check = True\n'.format(lang=language))
     def load_model_np(self, L):
         model = np.load('Models/%sModelTrigram.model' % L)
         return model
-
-    def tweet_count(self):
-        filename = '%s_tweetCount.txt' % self.training_file
-        print('filename for tweetCount is: ', filename)
-        file = open(filename, 'w')
-        for language in self.languages:
-            exec('print(\'%s tweets are :\', self.%sCount, file=file)' % (language, language))
