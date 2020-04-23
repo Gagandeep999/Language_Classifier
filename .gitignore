@@ -13,3 +13,7 @@ __pycache__/
 *$py.class
 
 *.zip
+
+Models/
+Outputs/
+Submission/

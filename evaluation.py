@@ -27,11 +27,21 @@ class Evaluation:
             result = row['RESULT']
             if 'wrong' in result:
                 self.wrong_count += 1
-                exec('self.%sFN += 1' % actual)
-                exec('self.%sFP += 1' % predicted)
+                for language in self.languages:
+                    if actual in language:
+                        exec('self.%sFN += 1' % language)
+                    elif predicted in language:
+                        exec('self.%sFP += 1' % language)
+                    else:
+                        exec('self.%sTN += 1' % language)
+
             else:
                 self.correct_count += 1
-                exec('self.%sTP += 1' % predicted)
+                for language in self.languages:
+                    if predicted in language:
+                        exec('self.%sTP += 1' % language)
+                    else:
+                        exec('self.%sTN += 1' % language)
 
     def print_to_file(self):
         eval_filename = self.data.replace('trace', 'eval')
@@ -94,4 +104,22 @@ class Evaluation:
         recall = self.recall(tp=tp, fn=fn)
         if precision + recall == 0:
             return 0
-        return (tp+fp)/(self.wrong_count+self.correct_count) * ( 2 * ((precision * recall) / (precision + recall)) )
+        return (tp+fp)/(self.wrong_count+self.correct_count) * ( 2 * ((precision * recall) / (precision + recall)))
+
+    def confusion_matrix_each_lang(self):
+        indent = '         '
+        eval_filename = self.data.replace('trace', 'cnf_matrix')
+        print('in eval writing to: ', eval_filename)
+        file = open(eval_filename, 'w')
+        for language in self.languages:
+            print('CONFUSION MATRIX FOR LANGUAGE : %s' % language, file=file)
+            print(indent, 'Actual', '', 'Actual', file=file)
+            print(indent, 'correct', 'false', file=file)
+            print('Predicted', '------------', file=file)
+            exec('print(\'correct\', \'  |\', self.%sTP, \'|\', self.%sFP, \'|\', file=file) ' % (language, language))
+            print('predicted', '------------', file=file)
+            exec('print(\'false\', \'    |\', self.%sFN, \'|\', self.%sTN, \'|\', file=file) ' % (language, language))
+            print(indent, '------------', file=file)
+
+
+

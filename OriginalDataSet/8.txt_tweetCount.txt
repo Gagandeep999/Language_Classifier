@@ -1,0 +1,6 @@
+eu tweets are : 0
+ca tweets are : 1391
+gl tweets are : 504
+es tweets are : 4585
+en tweets are : 483
+pt tweets are : 96

@@ -1,0 +1,6 @@
+eu tweets are : 376
+ca tweets are : 75
+gl tweets are : 1
+es tweets are : 3925
+en tweets are : 505
+pt tweets are : 2020
